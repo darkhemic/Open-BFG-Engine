@@ -36,7 +36,7 @@ extern idCVar s_noSound;
 
 #define JPEG_INTERNALS
 //extern "C" {
-#include "../libs/jpeg-6/jpeglib.h"
+#include <jpeglib.h>
 //}
 
 #include "tr_local.h"
@@ -439,8 +439,8 @@ idCinematicLocal::~idCinematicLocal()
 	
 	// RB: TODO double check this. It seems we have different versions of ffmpeg on Kubuntu 13.10 and the win32 development files
 #if defined(_WIN32) || defined(_WIN64)
-	avcodec_free_frame( &frame );
-	avcodec_free_frame( &frame2 );
+	av_frame_free( &frame );
+	av_frame_free( &frame2 );
 #else
 	av_freep( &frame );
 	av_freep( &frame2 );
@@ -551,18 +551,18 @@ bool idCinematicLocal::InitFromFFMPEGFile( const char* qpath, bool amilooping )
 	int ticksPerFrame = dec_ctx->ticks_per_frame;
 	float durationSec = static_cast<double>( fmt_ctx->streams[video_stream_index]->duration ) * static_cast<double>( ticksPerFrame ) / static_cast<double>( avr.den );
 	animationLength = durationSec * 1000;
-	frameRate = av_q2d( fmt_ctx->streams[video_stream_index]->r_frame_rate );
+	frameRate = av_q2d( fmt_ctx->streams[video_stream_index]->avg_frame_rate );
 	buf = NULL;
 	hasFrame = false;
 	framePos = -1;
 	common->Printf( "Loaded FFMPEG file: '%s', looping=%d%dx%d, %f FPS, %f sec\n", qpath, looping, CIN_WIDTH, CIN_HEIGHT, frameRate, durationSec );
 	image = ( byte* )Mem_Alloc( CIN_WIDTH * CIN_HEIGHT * 4 * 2, TAG_CINEMATIC );
-	avpicture_fill( ( AVPicture* )frame2, image, PIX_FMT_BGR32, CIN_WIDTH, CIN_HEIGHT );
+	avpicture_fill( ( AVPicture* )frame2, image, AV_PIX_FMT_BGR32, CIN_WIDTH, CIN_HEIGHT );
 	if( img_convert_ctx )
 	{
 		sws_freeContext( img_convert_ctx );
 	}
-	img_convert_ctx = sws_getContext( dec_ctx->width, dec_ctx->height, dec_ctx->pix_fmt, CIN_WIDTH, CIN_HEIGHT, PIX_FMT_BGR32, SWS_BICUBIC, NULL, NULL, NULL );
+	img_convert_ctx = sws_getContext( dec_ctx->width, dec_ctx->height, dec_ctx->pix_fmt, CIN_WIDTH, CIN_HEIGHT, AV_PIX_FMT_BGR32, SWS_BICUBIC, NULL, NULL, NULL );
 	status = FMV_PLAY;
 	
 	startTime = 0;
@@ -2046,8 +2046,12 @@ struct jpeg_error_mgr jerr;
  * the front of the buffer rather than discarding it.
  */
 
-
-METHODDEF boolean fill_input_buffer( j_decompress_ptr cinfo )
+#ifdef USE_NEWER_JPEG
+METHODDEF( boolean )
+#else
+METHODDEF boolean
+#endif
+fill_input_buffer( j_decompress_ptr cinfo )
 {
 	my_src_ptr src = ( my_src_ptr ) cinfo->src;
 	int nbytes;
@@ -2078,8 +2082,12 @@ METHODDEF boolean fill_input_buffer( j_decompress_ptr cinfo )
  * before any data is actually read.
  */
 
-
-METHODDEF void init_source( j_decompress_ptr cinfo )
+#ifdef USE_NEWER_JPEG
+METHODDEF( void )
+#else
+METHODDEF void
+#endif
+init_source( j_decompress_ptr cinfo )
 {
 	my_src_ptr src = ( my_src_ptr ) cinfo->src;
 	
@@ -2102,7 +2110,11 @@ METHODDEF void init_source( j_decompress_ptr cinfo )
  * buffer is the application writer's problem.
  */
 
+#ifdef USE_NEWER_JPEG
+METHODDEF( void )
+#else
 METHODDEF void
+#endif
 skip_input_data( j_decompress_ptr cinfo, long num_bytes )
 {
 	my_src_ptr src = ( my_src_ptr ) cinfo->src;
@@ -2138,14 +2150,22 @@ skip_input_data( j_decompress_ptr cinfo, long num_bytes )
  * for error exit.
  */
 
+#ifdef USE_NEWER_JPEG
+METHODDEF( void )
+#else
 METHODDEF void
+#endif
 term_source( j_decompress_ptr cinfo )
 {
 	cinfo = cinfo;
 	/* no work necessary here */
 }
 
+#ifdef USE_NEWER_JPEG
+GLOBAL( void )
+#else
 GLOBAL void
+#endif
 jpeg_memory_src( j_decompress_ptr cinfo, byte* infile, int size )
 {
 	my_src_ptr src;

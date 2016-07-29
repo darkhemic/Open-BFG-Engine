@@ -86,7 +86,7 @@ const int MAX_EXPRESSION_REGISTERS = 4096;
 // renderer
 
 // RB: replaced QGL with GLEW
-#include "../libs/glew/include/GL/glew.h"
+#include <GL/glew.h>
 // RB end
 #include "../renderer/Cinematic.h"
 #include "../renderer/Material.h"
@@ -103,6 +103,9 @@ const int MAX_EXPRESSION_REGISTERS = 4096;
 // user interfaces
 #include "../ui/ListGUI.h"
 #include "../ui/UserInterface.h"
+
+// RB: required for SWF extensions
+#include "../libs/rapidjson/include/rapidjson/document.h"
 
 #include "../swf/SWF.h"
 

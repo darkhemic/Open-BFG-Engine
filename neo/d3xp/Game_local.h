@@ -3,6 +3,8 @@
 
 Doom 3 BFG Edition GPL Source Code
 Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
+Copyright (C) 2014-2016 Robert Beckebans
+Copyright (C) 2014-2016 Kot in Action Creative Artel
 
 This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
@@ -329,7 +331,11 @@ public:
 	idSmokeParticles* 		smokeParticles;			// global smoke trails
 	idEditEntities* 		editEntities;			// in game editing
 	
+	int						cinematicSkipTime;		// don't allow skipping cinemetics until this time has passed so player doesn't skip out accidently from a firefight
+	int						cinematicStopTime;		// cinematics have several camera changes, so keep track of when we stop them so that we don't reset cinematicSkipTime unnecessarily
+	int						cinematicMaxSkipTime;	// time to end cinematic when skipping.  there's a possibility of an infinite loop if the map isn't set up right.
 	bool					inCinematic;			// game is playing cinematic (player controls frozen)
+	bool					skipCinematic;
 	
 	int						framenum;
 	int						time;					// in msec
@@ -479,6 +485,7 @@ public:
 	
 	void					SetCamera( idCamera* cam );
 	idCamera* 				GetCamera() const;
+	bool			        SkipCinematic( void );
 	void					CalcFov( float base_fov, float& fov_x, float& fov_y ) const;
 	
 	void					AddEntityToHash( const char* name, idEntity* ent );
@@ -596,6 +603,19 @@ public:
 	virtual void					Shell_UpdateClientCountdown( int countdown );
 	virtual void					Shell_UpdateLeaderboard( const idLeaderboardCallback* callback );
 	virtual void					Shell_SetGameComplete();
+	virtual bool			        SkipCinematicScene();
+	virtual bool                    CheckInCinematic();
+	
+	virtual void					StartDemoPlayback( idRenderWorld* renderworld );
+	
+	void							DemoWriteGameInfo();
+	
+	enum gameDemoCommand_t
+	{
+		GCMD_UNKNOWN,
+		GCMD_GAMETIME,
+	};
+	virtual bool					ProcessDemoCommand( idDemoFile* readDemo );
 	
 	void					Shell_ClearRepeater();
 	

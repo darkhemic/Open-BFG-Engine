@@ -101,6 +101,8 @@ int64 com_engineHz_numerator = 100LL * 1000LL;
 int64 com_engineHz_denominator = 100LL * 60LL;
 
 // RB begin
+int com_editors = 0;
+
 #if defined(_WIN32)
 HWND com_hwndMsg = NULL;
 #endif
@@ -1762,31 +1764,38 @@ bool idCommonLocal::ProcessEvent( const sysEvent_t* event )
 	{
 		if( event->evType == SE_KEY && event->evValue2 == 1 && ( event->evValue == K_ESCAPE || event->evValue == K_JOY9 ) )
 		{
-			if( !game->Shell_IsActive() )
+			if( game->CheckInCinematic() == true )
 			{
-			
-				// menus / etc
-				if( MenuEvent( event ) )
-				{
-					return true;
-				}
-				
-				console->Close();
-				
-				StartMenu();
-				return true;
+				game->SkipCinematicScene();
 			}
 			else
 			{
-				console->Close();
-				
-				// menus / etc
-				if( MenuEvent( event ) )
+				if( !game->Shell_IsActive() )
 				{
+				
+					// menus / etc
+					if( MenuEvent( event ) )
+					{
+						return true;
+					}
+					
+					console->Close();
+					
+					StartMenu();
 					return true;
 				}
-				
-				game->Shell_ClosePause();
+				else
+				{
+					console->Close();
+					
+					// menus / etc
+					if( MenuEvent( event ) )
+					{
+						return true;
+					}
+					
+					game->Shell_ClosePause();
+				}
 			}
 		}
 	}

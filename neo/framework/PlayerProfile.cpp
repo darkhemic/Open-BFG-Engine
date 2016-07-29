@@ -159,6 +159,7 @@ bool idPlayerProfile::Serialize( idSerializer& ser )
 		cvarDict.Delete( "r_fullscreen" );
 		cvarDict.Delete( "r_vidMode" );
 		cvarDict.Delete( "r_multisamples" );
+		cvarDict.Delete( "r_antiAliasing" );
 		cvarDict.Delete( "com_engineHz" );
 		cvarSystem->SetCVarsFromDict( cvarDict );
 		common->StartupVariable( NULL );
@@ -436,11 +437,13 @@ void idPlayerProfile::ExecConfig( bool save, bool forceDefault )
 	
 	if( leftyFlip )
 	{
-		cmdSystem->AppendCommandText( "exec joy_lefty.cfg" );
+		cmdSystem->AppendCommandText( "exec joy_lefty.cfg\n" );
+		cmdSystem->AppendCommandText( "exec joy_360_0.cfg\n" );
 	}
 	else
 	{
-		cmdSystem->AppendCommandText( "exec joy_righty.cfg" );
+		cmdSystem->AppendCommandText( "exec joy_righty.cfg\n" );
+		cmdSystem->AppendCommandText( "exec joy_360_0.cfg\n" );
 	}
 	
 	cmdSystem->ExecuteCommandBuffer();

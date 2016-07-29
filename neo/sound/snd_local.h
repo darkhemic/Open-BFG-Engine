@@ -3,7 +3,8 @@
 
 Doom 3 BFG Edition GPL Source Code
 Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
-Copyright (C) 2013 Robert Beckebans
+Copyright (C) 2013-2016 Robert Beckebans
+Copyright (C) 2014-2016 Kot in Action Creative Artel
 
 This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
@@ -82,13 +83,13 @@ typedef enum
 	SCMD_STATE,				// followed by a load game state
 	SCMD_PLACE_LISTENER,
 	SCMD_ALLOC_EMITTER,
-	
 	SCMD_FREE,
 	SCMD_UPDATE,
 	SCMD_START,
 	SCMD_MODIFY,
 	SCMD_STOP,
-	SCMD_FADE
+	SCMD_FADE,
+	SCMD_CACHESOUNDSHADER,
 } soundDemoCommand_t;
 
 #include "SoundVoice.h"
@@ -137,7 +138,24 @@ ID_INLINE_EXTERN ALCenum CheckALCErrors_( ALCdevice* device, const char* filenam
 #define OPERATION_SET 1
 
 // RB: not available on Windows 8 SDK
-#if !defined(USE_WINRT) // (_WIN32_WINNT < 0x0602 /*_WIN32_WINNT_WIN8*/)
+#if defined(USE_WINRT) // (_WIN32_WINNT < 0x0602 /*_WIN32_WINNT_WIN8*/)
+#include <mmdeviceapi.h>
+#include <initguid.h> // For the pkey defines to be properly instantiated.
+#include <propkeydef.h>
+#include "functiondiscoverykeys_devpkey.h"
+#include <string>
+#include <vector>
+
+DEFINE_PROPERTYKEY( PKEY_AudioEndpoint_Path, 0x9c119480, 0xddc2, 0x4954, 0xa1, 0x50, 0x5b, 0xd2, 0x40, 0xd4, 0x54, 0xad, 1 );
+
+#pragma comment(lib,"xaudio2.lib")
+
+struct AudioDevice
+{
+	std::wstring name;
+	std::wstring id;
+};
+#else
 #include <dxsdkver.h>
 #endif
 // RB end
@@ -277,6 +295,8 @@ public:
 	
 	// where is the camera
 	virtual void			PlaceListener( const idVec3& origin, const idMat3& axis, const int listenerId );
+	
+	virtual void			WriteSoundShaderLoad( const idSoundShader* snd );
 	
 	// fade all sounds in the world with a given shader soundClass
 	// to is in Db, over is in seconds
